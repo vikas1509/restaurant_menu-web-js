@@ -1,4 +1,4 @@
-const recipes = [
+const data =[
     {
         "name": "Veggie Delight",
         "imageSrc": "https://source.unsplash.com/random?veggies",
@@ -12,7 +12,7 @@ const recipes = [
         "imageSrc": "https://source.unsplash.com/random?chicken",
         "time": "45 min",
         "type": "non-veg",
-        "isLiked": false,
+        "isLiked": true,
         "rating": 4.5
     },
     {
@@ -121,135 +121,102 @@ const recipes = [
     }
 ];
 
-function displayRecipes(recipesData) {
-    const recipeContainer = document.getElementById('recipeContainer');
-    recipeContainer.innerHTML = '';
 
-    recipesData.forEach((recipe, index) => {
-        const recipeCard = document.createElement('div');
-        recipeCard.classList.add('recipe-card');
+let  filters = {
+    type:"all",
+    rating:''
+}
+// const ratingFilter=document.getElementById("rating-filter");
+// let ratingRadioSelectors = ratingFilter.getElementByTagName("input");
 
-        const recipeImage = document.createElement('img');
-        recipeImage.src = recipe.imageSrc;
-        recipeCard.appendChild(recipeImage);
-
-        const recipeInfo = document.createElement('div');
-        recipeInfo.classList.add('recipe-info');
-
-        const recipeName = document.createElement('h2');
-        recipeName.textContent = recipe.name;
-        recipeInfo.appendChild(recipeName);
-
-        const recipeType = document.createElement('div');
-        recipeType.classList.add('recipe-type');
-        recipeType.textContent = recipe.type === 'veg' ? 'Veg' : 'Non-Veg';
-        recipeInfo.appendChild(recipeType);
-
-        const recipeTime = document.createElement('div');
-        recipeTime.classList.add('recipe-time');
-        recipeTime.textContent = recipe.time;
-        recipeInfo.appendChild(recipeTime);
-
-        const recipeRating = document.createElement('div');
-        recipeRating.classList.add('recipe-rating');
-        recipeRating.textContent = `Rating: ${recipe.rating}`;
-        recipeInfo.appendChild(recipeRating);
-
-        const likeButton = document.createElement('div');
-        likeButton.classList.add('like-button');
-        likeButton.innerHTML = recipe.isLiked ? '&#9829;' : '&#9825;';
-        likeButton.addEventListener('click', () => toggleLike(index));
-        recipeInfo.appendChild(likeButton);
-
-        recipeCard.appendChild(recipeInfo);
-        recipeContainer.appendChild(recipeCard);
-    });
+function filterResults(){
+    let {type, rating} =filters ;
+   return  data.filter((recipe)=>{
+       let isThisFiltered = true;
+       isThisFiltered &&= type =="all" || (type===recipe.type);
+       isThisFiltered &&=rating==="" || (rating==="4+" ? recipe.rating >4 : recipe.rating<4)
+       return isThisFiltered;
+    })
+}
+function cleanContainer(){
+    cardsContainer.innerHTML="";
 }
 
-function toggleLike(recipeIndex) {
-    recipes[recipeIndex].isLiked = !recipes[recipeIndex].isLiked;
-    displayRecipes(getFilteredRecipes());
+
+function changeFilterObject(newFilter){
+    filters={...filters, ...newFilter}
+    let filteredResults=filterResults();
+    cleanContainer();
+    addRecipesOntoContainer(filteredResults)
+}
+ 
+function onChangeRatingFilter(input) {
+    const selectedValue = input.value;
+    changeFilterObject({ rating: selectedValue });
+  }
+
+function filterByType(filterType){
+     
+    changeFilterObject({type:filterType})
+}
+const cardsContainer= document.getElementById("cards-container");
+/* <div class="card">
+<img src="./rounded.jpg" alt="">
+<span class="tag" >veg</span>
+
+<div  class="name-container">
+    <p>Russian Salad</p>
+    <div class="rating-container">
+        <span class="material-symbols-rounded">star</span>
+    <span class="rating-text">4.5 </span>
+    
+    </div>
+
+</div>
+
+<div class="buttom-container">
+    <p class="time">40min</p>
+    <div>
+        <span class="material-symbols-rounded">favorite</span>
+        <span class="material-symbols-rounded">comment</span>
+    </div>
+</div>
+</div> */
+
+function addRecipesOntoContainer(list){
+ 
+    list.forEach((recipe) => {
+
+        const card = document.createElement("div");
+        card.className="card";
+        card.innerHTML=`
+        <img src="${recipe.imageSrc}" alt="">
+        <span class="tag" >${recipe.type}</span>
+        
+        <div  class="name-container">
+            <p>${recipe.name}</p>
+            <div class="rating-container">
+                <span class="material-symbols-rounded">star</span>
+            <span class="rating-text">${recipe.rating}</span>
+            
+            </div>
+        
+        </div>
+        
+        <div class="buttom-container">
+            <p class="time">${recipe.time}</p>
+            <div class="action-container"> 
+            <span class="material-symbols-rounded ${recipe.isLiked? "liked":""}">favorite</span>
+            <span class="material-symbols-rounded">comment</span>
+        </div>
+        </div>`
+        
+cardsContainer.appendChild(card);
+
+
+    })
 }
 
-function filterRecipes(searchQuery) {
-    const filteredRecipes = recipes.filter((recipe) =>
-        recipe.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-    displayRecipes(filteredRecipes);
-}
+addRecipesOntoContainer(data);
 
-function filterByType(type) {
-    const filteredRecipes = type === 'all' ? recipes : recipes.filter((recipe) => recipe.type === type);
-    displayRecipes(filteredRecipes);
-}
 
-function filterByRating(ratingType) {
-    let filteredRecipes;
-    if (ratingType === 'above') {
-        filteredRecipes = recipes.filter((recipe) => recipe.rating > 4.5);
-    } else if (ratingType === 'below') {
-        filteredRecipes = recipes.filter((recipe) => recipe.rating < 4.0);
-    }
-    displayRecipes(filteredRecipes);
-}
-
-function getFilteredRecipes() {
-    const activeFilter = document.querySelector('.filter-button.active').id;
-    switch (activeFilter) {
-        case 'showVeg':
-            return recipes.filter((recipe) => recipe.type === 'veg');
-        case 'showNonVeg':
-            return recipes.filter((recipe) => recipe.type === 'non-veg');
-        default:
-            return recipes;
-    }
-}
-
-function toggleDrawer() {
-    const drawer = document.getElementById('drawer');
-    drawer.classList.toggle('show');
-}
-
-document.getElementById('searchInput').addEventListener('input', (e) => {
-    const searchQuery = e.target.value.trim();
-    filterRecipes(searchQuery);
-});
-
-document.getElementById('showAll').addEventListener('click', () => {
-    document.querySelector('.filter-button.active').classList.remove('active');
-    document.getElementById('showAll').classList.add('active');
-    displayRecipes(recipes);
-});
-
-document.getElementById('showVeg').addEventListener('click', () => {
-    document.querySelector('.filter-button.active').classList.remove('active');
-    document.getElementById('showVeg').classList.add('active');
-    filterByType('veg');
-});
-
-document.getElementById('showNonVeg').addEventListener('click', () => {
-    document.querySelector('.filter-button.active').classList.remove('active');
-    document.getElementById('showNonVeg').classList.add('active');
-    filterByType('non-veg');
-});
-
-document.getElementById('ratingAbove').addEventListener('change', () => {
-    if (document.getElementById('ratingAbove').checked) {
-        filterByRating('above');
-    }
-});
-
-document.getElementById('ratingBelow').addEventListener('change', () => {
-    if (document.getElementById('ratingBelow').checked) {
-        filterByRating('below');
-    }
-});
-
-document.getElementById('closeDrawer').addEventListener('click', toggleDrawer);
-
-document.getElementById('toggleNav').addEventListener('click', () => {
-    document.querySelector('.nav-items').classList.toggle('show');
-});
-
-// Initial display of all recipes
-displayRecipes(recipes);
